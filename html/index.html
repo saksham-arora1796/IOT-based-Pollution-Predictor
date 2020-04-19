@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+	<meta charset="utf-8" />
+	<head>
+		<title>Final Semester Project</title>
+		<style> /* set the CSS */
+			.line {
+				fill: none;
+				stroke: steelblue;
+				stroke-width: 2px;
+			}
+			.polgraph {
+				
+			}
+		</style>
+		<!-- load the d3.js library -->
+		<script src="~/DailyPolLog/model_output.js"></script>
+		<script src="scripts/d3.min.js"></script>
+	</head>
+	<body>
+		<h1 align="center">Live Plot & ML Coefficients (with Intercepts)</h1>
+		<script>
+			// set the dimensions and margins of the graph
+			var margin = {top: 20, right: 20, bottom: 30, left: 50},
+				width = 900 - margin.left - margin.right,
+				height = 440 - margin.top - margin.bottom;
+
+			// set the ranges
+			var x = d3.scaleTime().range([0, width]);
+			var y = d3.scaleLinear().range([height, 0]);
+
+			// define the 1st line
+			var valueline = d3.line()
+				.x(function(d) { return x(d.date); })
+				.y(function(d) { return y(d.lpg); });
+
+			// define the 2nd line
+			var valueline2 = d3.line()
+				.x(function(d) { return x(d.date); })
+				.y(function(d) { return y(d.co); });
+
+			// define the 3rd line
+			var valueline3 = d3.line()
+				.x(function(d) { return x(d.date); })
+				.y(function(d) { return y(d.smoke); });
+
+			// append the svg obgect to the body of the page
+			// appends a 'group' element to 'svg'
+			// moves the 'group' element to the top left margin
+			var svg = d3.select("div polgraph").append("svg")
+				.attr("width", width + margin.left + margin.right)
+				.attr("height", height + margin.top + margin.bottom)
+			  .append("g")
+				.attr("transform",
+					  "translate(" + margin.left + "," + margin.top + ")");
+
+			// Get the data
+			d3.csv("~/DailyPolLog/plot.csv", function(error, data) {
+			  if (error) throw error;
+
+			  // format the data
+			  data.forEach(function(d) {
+				  d.date = +d.date*1000;
+				  d.lpg = +d.lpg;
+				  d.co = +d.co;
+				  d.smoke = +d.smoke;
+			  });
+
+			  // Scale the range of the data
+			  x.domain(d3.extent(data, function(d) { return d.date; }));
+			  y.domain([0, d3.max(data, function(d) {
+				  return Math.max(d.lpg, d.co, d.smoke); })]);
+
+			  // Add the valueline path.
+			  svg.append("path")
+				  .data([data])
+				  .attr("class", "line")
+				  .style("stroke", "blue")
+				  .attr("d", valueline);
+
+			  // Add the valueline2 path.
+			  svg.append("path")
+				  .data([data])
+				  .attr("class", "line")
+				  .style("stroke", "red")
+				  .attr("d", valueline2);
+
+			// Add the valueline3 path.
+			  svg.append("path")
+				  .data([data])
+				  .attr("class", "line")
+				  .style("stroke", "green")
+				  .attr("d", valueline3);
+
+			  // Add the X Axis
+			  svg.append("g")
+				  .attr("transform", "translate(0," + height + ")")
+				  .call(d3.axisBottom(x));
+
+			  // Add the Y Axis
+			  svg.append("g")
+				  .call(d3.axisLeft(y));
+
+			});
+		</script>
+		<div class="#polgraph"></div>
+		<table border=1px>
+			<tr><td><b style="color: blue;">• </b> LPG</td><td>Coefficient CO: <td><span id="c1"></span></td></td><td>Coefficient Smoke: <td><span id="c2"></span></td></td><td>Intercept: <td><span id="i1"></span></td></td></tr>
+			<tr><td><b style="color: red;">• </b> CO</td><td>Coefficient LPG: <td><span id="c3"></span></td></td><td>Coefficient Smoke: <td><span id="c4"></span></td></td><td>Intercept: <td><span id="i2"></span></td></td></tr>
+			<tr><td><b style="color: green;">• </b> Smoke</td><td>Coefficient LPG: <td><span id="c5"></span></td></td><td>Coefficient CO: <td><span id="c6"></span></td></td><td>Intercept: <td><span id="i3"></span></td></td></tr>
+		</table>
+	</body>
+	<script>
+		document.getElementById("c1").innerHTML = coef[0];
+		document.getElementById("c2").innerHTML = coef[1];
+		document.getElementById("i1").innerHTML = coef[2];
+		document.getElementById("c3").innerHTML = coef[3];
+		document.getElementById("c4").innerHTML = coef[4];
+		document.getElementById("i2").innerHTML = coef[5];
+		document.getElementById("c5").innerHTML = coef[6];
+		document.getElementById("c6").innerHTML = coef[7];
+		document.getElementById("i3").innerHTML = coef[8];
+	</script>
+</html>
